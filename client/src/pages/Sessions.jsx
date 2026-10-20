@@ -1,22 +1,56 @@
 import { ArrowLeftIcon } from 'lucide-react'
-import React, { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { dummySessions } from '../assets/asset'
 import EmptySessions from '../components/sessions/EmptySessions'
 import SessionCard from '../components/sessions/SessionCard'
 import SessionDetailModal from '../components/sessions/SessionDetailModal'
+import { useAuth } from '@clerk/react'
+import api from '../config/api.js'
+import toast from 'react-hot-toast'
+import Loader from '../components/Loader'
 
 const Sessions = () => {
 
-  const [sessions] = useState(dummySessions)
+  const [sessions, setSessions] = useState([])
   const [selectedSession, setSelectedSession] = useState(null)
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(true);
 
-  const openSessionDetails = (sessionId)=>{
-    const session = sessions.find((s)=>s.id === sessionId || s.meetingId === sessionId)
-    if(session){
-      setSelectedSession(session);
+  const { isLoaded, isSignedIn, getToken } = useAuth()
+
+  useEffect(()=>{
+    const fetchSessions = async (params) => {
+      if (!isLoaded || !isSignedIn) return;
+
+      try {
+        const token = await getToken();
+        if(!token) return;
+        const res = await api("/api/meetings/sessions", {headers: {Authorization: `Bearer ${token}`,}})
+        setSessions(res.data.meetings || [])
+      } catch (_error) {
+        toast.error("Failed to load meeting sessions");
+      }finally{
+        setLoading(false);
+      }
     }
+    fetchSessions();
+
+  },[isLoaded, isSignedIn, getToken])
+
+  const openSessionDetails = async (sessionId)=>{
+    try {
+      const token = await getToken();
+      const res = await api.get(`/api/meetings/sessions/${sessionId}`, {
+        headers: {Authorization: `Bearer ${token}`,}
+      })
+      setSelectedSession(res.data.meeting);
+    } catch (_error) {
+      toast.error("Could not fetch session details");
+    }
+  }
+
+  if(loading){
+    return <Loader text='Loading meeting history...'/>
   }
 
   return (
