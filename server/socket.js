@@ -173,7 +173,7 @@ export function setupSocketIO(io){
                 SET status = 'ended', ended_at = NOW()
                 WHERE meeting_id = ${roomId}`;
 
-                io.on(roomId).emit("meeting-ended", { message: "The meeting has been ended by the host. "});
+                io.to(roomId).emit("meeting-ended", { message: "The meeting has been ended by the host. "});
                 rooms.delete(roomId);
            } catch (err) {
                console.error("Error ending meeting:", err);

@@ -113,7 +113,10 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
         const startSession = async () => {
             const stream = await initLocalStream();
 
-            if (!isMounted) return;
+            if (!isMounted) {
+                stream?.getTracks().forEach((track) => track.stop());
+                return;
+            }
 
             if (!socket.connected) {
                 socket.connect();
@@ -123,8 +126,8 @@ export const useWebRTC = (roomId, user, onMeetingEnded, enabled = true) => {
             socket.emit("join-room", {
                 roomId,
                 user,
-                audioEnabled: true,
-                videoEnabled: true,
+                audioEnabled: Boolean(stream?.getAudioTracks().length),
+                videoEnabled: Boolean(stream?.getVideoTracks().length),
             });
 
             // 1. Receive all existing users in room
