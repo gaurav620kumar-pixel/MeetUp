@@ -49,7 +49,7 @@ const MeetingRoom = () => {
         }
         setMeeting(res.data.meeting)
       } catch (error) {
-        const errorMsg = error.respone?.data?.error || "Meeting not found or has ended";
+        const errorMsg = error.response?.data?.error || "Meeting not found or has ended";
         toast.error(errorMsg);
         navigate("/dashboard");
       }finally{
